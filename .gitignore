@@ -1,0 +1,85 @@
+.gradle
+build/
+.mcp.json
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+### IntelliJ IDEA ###
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+!**/src/main/**/out/
+!**/src/test/**/out/
+
+### Eclipse ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+bin/
+!**/src/main/**/bin/
+!**/src/test/**/bin/
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+### VS Code ###
+.vscode/
+
+### Mac OS ###
+.DS_Store
+
+build/
+.gradle/
+.idea/
+.env
+.env.*
+*.log
+*.har
+*.pcap
+*.pem
+*.key
+__pycache__/
+
+# Kotlin compiler local state
+.kotlin/
+
+# Local client configuration and credentials (commit only reviewed *.example files)
+/.codex/
+/opencode.json
+/mcp.json
+/.mcp.local.json
+/local.properties
+/gradle.properties.local
+*.p12
+*.pfx
+*.jks
+*.keystore
+
+# Private traffic, Burp projects, evidence and temporary captures
+*.burp
+*.burp.bak
+*.pcapng
+*.jsonl
+*.hprof
+/reports/
+/evidence/
+/private-evidence/
+*.tmp
+*.bak
+~$*.docx
+
+# Generated archives stay local; the reviewed Gradle wrapper is the sole JAR exception
+*.jar
+*.zip
+!gradle/wrapper/gradle-wrapper.jar
