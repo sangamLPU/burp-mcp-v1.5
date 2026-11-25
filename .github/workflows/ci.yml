@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, codex/burp-mcp-1.0.0-custom]
   pull_request:
     branches: [main]
 
