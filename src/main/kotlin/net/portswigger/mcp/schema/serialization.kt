@@ -39,16 +39,16 @@ fun AuditIssue.toSerializableForm(): IssueDetails {
 
 fun burp.api.montoya.http.message.HttpRequestResponse.toSerializableForm(): HttpRequestResponse {
     return HttpRequestResponse(
-        request = request()?.toString() ?: "<no request>",
-        response = response()?.toString() ?: "<no response>",
+        request = request()?.renderForMcp() ?: "<no request>",
+        response = response()?.renderForMcp() ?: "<no response>",
         notes = annotations().notes()
     )
 }
 
 fun ProxyHttpRequestResponse.toSerializableForm(): HttpRequestResponse {
     return HttpRequestResponse(
-        request = request()?.toString() ?: "<no request>",
-        response = response()?.toString() ?: "<no response>",
+        request = request()?.renderForMcp() ?: "<no request>",
+        response = response()?.renderForMcp() ?: "<no response>",
         notes = annotations().notes()
     )
 }
@@ -57,8 +57,8 @@ fun OrganizerItem.toSerializableForm(): OrganizerItemDetails {
     return OrganizerItemDetails(
         id = id(),
         status = status().displayName(),
-        request = request()?.toString() ?: "<no request>",
-        response = response()?.toString() ?: "<no response>",
+        request = request()?.renderForMcp() ?: "<no request>",
+        response = response()?.renderForMcp() ?: "<no response>",
         notes = annotations().notes()
     )
 }

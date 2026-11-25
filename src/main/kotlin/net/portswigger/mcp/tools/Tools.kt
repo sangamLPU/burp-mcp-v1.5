@@ -16,6 +16,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import net.portswigger.mcp.config.McpConfig
 import net.portswigger.mcp.schema.encodeHistoryItem
+import net.portswigger.mcp.schema.renderForMcp
 import net.portswigger.mcp.schema.toSerializableForm
 import net.portswigger.mcp.security.DataAccessSecurity
 import net.portswigger.mcp.security.DataAccessType
@@ -126,7 +127,7 @@ fun Server.registerTools(api: MontoyaApi, config: McpConfig) {
         currentCoroutineContext().ensureActive()
         val response = api.http().sendRequest(request)
 
-        response?.toString() ?: "<no response>"
+        response?.renderForMcp() ?: "<no response>"
     }
 
     mcpTool<SendHttp2Request>("Issues an HTTP/2 request and returns the response. Do NOT pass headers to the body parameter.") {
@@ -158,7 +159,7 @@ fun Server.registerTools(api: MontoyaApi, config: McpConfig) {
         currentCoroutineContext().ensureActive()
         val response = api.http().sendRequest(request, HttpMode.HTTP_2)
 
-        response?.toString() ?: "<no response>"
+        response?.renderForMcp() ?: "<no response>"
     }
 
     mcpUnitTool<CreateRepeaterTab>("Creates an HTTP/1.1 Repeater tab with the specified raw HTTP request and optional tab name. Make sure to use carriage returns appropriately. Prefer create_repeater_tab_http2 for modern web targets that speak HTTP/2.") {
@@ -228,7 +229,7 @@ fun Server.registerTools(api: MontoyaApi, config: McpConfig) {
 
     mcpTool<SetProjectOptions>("Sets project-level configuration in JSON format. This will be merged with existing configuration. Make sure to export before doing this, so you know what the schema is. Make sure the JSON has a top level 'user_options' object!") {
         if (config.configEditingTooling) {
-            api.logging().logToOutput("Setting project-level configuration: $json")
+            api.logging().logToOutput("Applying project-level configuration")
             api.burpSuite().importProjectOptionsFromJson(json)
 
             "Project configuration has been applied"
@@ -240,7 +241,7 @@ fun Server.registerTools(api: MontoyaApi, config: McpConfig) {
 
     mcpTool<SetUserOptions>("Sets user-level configuration in JSON format. This will be merged with existing configuration. Make sure to export before doing this, so you know what the schema is. Make sure the JSON has a top level 'project_options' object!") {
         if (config.configEditingTooling) {
-            api.logging().logToOutput("Setting user-level configuration: $json")
+            api.logging().logToOutput("Applying user-level configuration")
             api.burpSuite().importUserOptionsFromJson(json)
 
             "User configuration has been applied"

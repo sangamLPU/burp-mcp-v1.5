@@ -1,0 +1,95 @@
+{
+  "release": "1.0.0-custom",
+  "packaged_on": "2026-11-25",
+  "distribution": "Local package for personal use",
+  "license": "GPL-3.0",
+  "origin": {
+    "repository": "https://github.com/PortSwigger/mcp-server",
+    "base_commit": "291034081160bc944b6df3eccd60c6fc99b477e1",
+    "source": "source.zip",
+    "source_snapshot": "Current customized working tree, with the Linux Gradle shell wrapper stored with LF and its tracked execute permission.",
+    "source_sha256": "7E24E675DAB0B58AF0193ED68887AB2F23216CA88381098A0E16A5270A0F25C9",
+    "embedded_proxy_source_revision": "4535adbf1624ae7943499071631d62769fec3c6c",
+    "embedded_proxy_source_archive": "licenses/mcp-proxy-source-4535adbf1624ae7943499071631d62769fec3c6c.zip",
+    "embedded_proxy_source_sha256": "483620645440D73506A144E4B9993F0CE4131751CCD94F92D270B47EF0D99D53",
+    "embedded_proxy_jar_sha256": "B6E12CCF8BC3AFCDF8B891CD23C29315915ADE985126A07FE22A875E9CD3C09E",
+    "license_notices": "LICENSING.md"
+  },
+  "artifact": {
+    "file": "burp-mcp-all.jar",
+    "sha256": "98077D3013783F5846376B2A297585B4EC12B34EF6DF6D8BDE2DAB9117AC0799",
+    "bytes": 33243615,
+    "internal_implementation_version": "1.4.0",
+    "tested_artifact": "Windows artifact reloaded into Burp Community 2026.11.2 without a binary change during finalization"
+  },
+  "build_environment": {
+    "gradle_wrapper": "9.2.0",
+    "java_target": 21,
+    "kotlin": "2.4.0",
+    "montoya_api": "2025.10",
+    "mcp_kotlin_sdk": "0.16.0",
+    "windows": {
+      "os": "Windows 11 Pro 10.0.26300 x64",
+      "gradle_launcher_jdk": "Oracle 18.0.2.1 per JAR manifest",
+      "toolchain": "Java 21"
+    },
+    "ubuntu_wsl": {
+      "os": "Ubuntu 26.04 LTS (WSL2)",
+      "gradle_launcher_and_toolchain": "Eclipse Temurin 21.0.13.1+2",
+      "reference_artifact_sha256": "71450E276FC88EB8D7AE8BAF64A39771B210FC49DEEA7859DEFDEAAD1FFFFACB"
+    },
+    "test_and_package_tasks": [
+      "clean",
+      "test",
+      "embedProxyJar"
+    ],
+    "parameters": "Offline, one Gradle worker, no persistent daemon or build cache, 768 MiB Gradle heap. Ubuntu used in-process Kotlin compilation and one test fork capped at 384 MiB."
+  },
+  "verification": {
+    "mcp_tools_live_community_edition": 42,
+    "github_ci": "Unverified",
+    "report": "docs/localhost-verification-report.md",
+    "final_rewrite_state": {
+      "request": "OFF",
+      "response": "OFF",
+      "existing_rules_retained": 8
+    },
+    "local_tests": {
+      "windows": {
+        "suites": 29,
+        "tests": 163,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "reports": "evidence/windows",
+        "embedProxyJar": "PASS"
+      },
+      "ubuntu-wsl": {
+        "suites": 29,
+        "tests": 163,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "reports": "evidence/ubuntu-wsl",
+        "embedProxyJar": "PASS"
+      }
+    }
+  },
+  "verified_functionality": [
+    "Streamable HTTP MCP connection, original tool schemas, and tool discovery",
+    "Global query, form, JSON string and supported multipart text parameter rewriting",
+    "Typed JSON request and response field matching and optional JSON Pointer rules",
+    "Complete eligible HTTP/1.1 and TLS HTTP/2 response body rewriting and compatible literal text",
+    "Combined request and response rewriting with independent masters",
+    "Exact-host allowlist, Burp Target Scope, local approval, and rule persistence",
+    "Shared approval dialog enable, denial and cancellation",
+    "Emergency Disable pass-through and stable counters on the final JAR"
+  ],
+  "known_limitations": [
+    "Visible compression passes through. Burp response unpacking must be disabled to arm response rewriting.",
+    "HTTP/1 chunked-origin identity is lost when Burp strips framing before Montoya. Some normalized chunked responses can be rewritten.",
+    "Montoya exposes processed HTTP/2 responses without raw frame completion or original trailer boundaries. Buffered compatible content can remain eligible.",
+    "Unsupported media, encodings, charsets, partial and conditional responses, downloads, streaming media, and malformed or oversized bodies pass through as documented.",
+    "WebSocket history Unicode may render incorrectly and affect regex matching. This release documents the limitation."
+  ]
+}

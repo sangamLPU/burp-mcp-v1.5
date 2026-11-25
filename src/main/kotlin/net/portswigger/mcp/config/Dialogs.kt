@@ -4,6 +4,7 @@ import burp.api.montoya.MontoyaApi
 import burp.api.montoya.http.message.requests.HttpRequest
 import burp.api.montoya.ui.editor.EditorOptions
 import kotlinx.coroutines.suspendCancellableCoroutine
+import net.portswigger.mcp.security.findBurpFrame
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import java.awt.*
@@ -13,6 +14,16 @@ import javax.swing.*
 import javax.swing.border.EmptyBorder
 
 object Dialogs {
+
+    internal fun resolveDialogOwner(parent: Component?): Window? {
+        val window = if (parent is Window) parent else parent?.let(SwingUtilities::getWindowAncestor)
+        return generateSequence(window) { it.owner }.firstOrNull { it is Frame || it is Dialog }
+            ?: findBurpFrame()
+    }
+
+    private fun JDialog.centerOn(parent: Component?) {
+        setLocationRelativeTo(parent?.takeIf { it.isShowing } ?: owner?.takeIf { it.isShowing })
+    }
 
     private fun wrapText(text: String, maxWidth: Int = 50): String {
         if (text.length <= maxWidth) return text
@@ -41,7 +52,8 @@ object Dialogs {
     }
 
     private fun createDialog(parent: Component?): JDialog {
-        val parentWindow = SwingUtilities.getWindowAncestor(parent)
+        check(SwingUtilities.isEventDispatchThread()) { "Dialogs must be created on the event dispatch thread." }
+        val parentWindow = resolveDialogOwner(parent)
         return JDialog(parentWindow, "", Dialog.ModalityType.APPLICATION_MODAL).apply {
             background = Design.Colors.surface
             defaultCloseOperation = JDialog.DISPOSE_ON_CLOSE
@@ -123,7 +135,7 @@ object Dialogs {
 
         dialog.contentPane = contentPanel
         dialog.pack()
-        dialog.setLocationRelativeTo(parent)
+        dialog.centerOn(parent)
         dialog.isVisible = true
     }
 
@@ -194,7 +206,7 @@ object Dialogs {
 
         dialog.contentPane = contentPanel
         dialog.pack()
-        dialog.setLocationRelativeTo(parent)
+        dialog.centerOn(parent)
         dialog.isVisible = true
 
         return result
@@ -274,7 +286,7 @@ object Dialogs {
 
         dialog.contentPane = contentPanel
         dialog.pack()
-        dialog.setLocationRelativeTo(parent)
+        dialog.centerOn(parent)
 
         SwingUtilities.invokeLater {
             inputField.requestFocusInWindow()
@@ -480,26 +492,12 @@ object Dialogs {
 
         dialog.pack()
 
-        if (parent != null && parent.isDisplayable) {
-            dialog.setLocationRelativeTo(parent)
+        dialog.centerOn(parent)
 
-            dialog.isAlwaysOnTop = true
-            dialog.toFront()
-            dialog.requestFocus()
-        } else {
-            val screenSize = Toolkit.getDefaultToolkit().screenSize
-            val dialogSize = dialog.size
-            dialog.setLocation(
-                (screenSize.width - dialogSize.width) / 2, (screenSize.height - dialogSize.height) / 2
-            )
-        }
-
-        if (onShow(dialog)) dialog.isVisible = true
-        else dialog.dispose()
-
-        SwingUtilities.invokeLater {
-            dialog.isAlwaysOnTop = false
-            dialog.toFront()
+        try {
+            if (onShow(dialog)) dialog.isVisible = true
+        } finally {
+            dialog.dispose()
         }
 
         return result

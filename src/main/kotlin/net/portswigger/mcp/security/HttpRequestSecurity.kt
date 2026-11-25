@@ -1,6 +1,8 @@
 package net.portswigger.mcp.security
 
 import burp.api.montoya.MontoyaApi
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import net.portswigger.mcp.config.Dialogs
 import net.portswigger.mcp.config.McpConfig
 
@@ -25,11 +27,10 @@ class SwingUserApprovalHandler : UserApprovalHandler {
             "Allow Once", "Always Allow Host", "Always Allow Host:Port", "Deny"
         )
 
-        val burpFrame = findBurpFrame()
-
         val result = Dialogs.requestOption(
-            burpFrame, message, options, requestContent, api
+            null, message, options, requestContent, api
         )
+        currentCoroutineContext().ensureActive()
 
         return when (result) {
             0 -> true

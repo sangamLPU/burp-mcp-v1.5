@@ -7,6 +7,11 @@ import net.portswigger.mcp.config.McpConfig
 import net.portswigger.mcp.providers.ClaudeDesktopProvider
 import net.portswigger.mcp.providers.ManualProxyInstallerProvider
 import net.portswigger.mcp.providers.ProxyJarManager
+import net.portswigger.mcp.rewrite.RewriteManager
+import net.portswigger.mcp.rewrite.RewritePanel
+import net.portswigger.mcp.rewrite.RewriteProxyHandler
+import net.portswigger.mcp.rewrite.ResponseProxyHandler
+import net.portswigger.mcp.rewrite.proxyPreservesResponseEncoding
 
 @Suppress("unused")
 class ExtensionBase : BurpExtension {
@@ -15,7 +20,12 @@ class ExtensionBase : BurpExtension {
         api.extension().setName("Burp MCP Server")
 
         val config = McpConfig(api.persistence().extensionData(), api.logging())
-        val serverManager = KtorServerManager(api)
+        val rewriteManager = RewriteManager(api.persistence().extensionData()) {
+            proxyPreservesResponseEncoding(api.burpSuite().exportProjectOptionsAsJson())
+        }
+        val serverManager = KtorServerManager(api, rewriteManager)
+        val rewriteRegistration = api.proxy().registerRequestHandler(RewriteProxyHandler(rewriteManager))
+        val responseRegistration = api.proxy().registerResponseHandler(ResponseProxyHandler(rewriteManager))
 
         val proxyJarManager = ProxyJarManager(api.logging())
 
@@ -41,8 +51,12 @@ class ExtensionBase : BurpExtension {
         }
 
         api.userInterface().registerSuiteTab("MCP", configUi.component)
+        api.userInterface().registerSuiteTab("MCP Rewrite", RewritePanel(rewriteManager))
 
         api.extension().registerUnloadingHandler {
+            rewriteManager.disableAll()
+            rewriteRegistration.deregister()
+            responseRegistration.deregister()
             serverManager.shutdown()
             configUi.cleanup()
             config.cleanup()

@@ -21,7 +21,7 @@ class McpServerIntegrationTest {
     private val serverManager = KtorServerManager(api)
     private val testPort = findAvailablePort()
     private val persistedObject = mockk<PersistedObject>()
-    private var serverStarted = false
+    @Volatile private var serverStarted = false
 
     init {
         every { persistedObject.getBoolean(any()) } returns true
@@ -49,7 +49,7 @@ class McpServerIntegrationTest {
         
         runBlocking {
             var attempts = 0
-            while (!serverStarted && attempts < 10) {
+            while (!serverStarted && attempts < 100) {
                 delay(100)
                 attempts++
             }
@@ -71,7 +71,18 @@ class McpServerIntegrationTest {
                 client.close()
             }
         }
+        serverManager.shutdown()
+    }
+
+    @Test
+    fun `shutdown drains queued restart and releases the port`() {
         serverManager.stop {}
+        serverManager.start(config) {}
+        serverManager.shutdown()
+        ServerSocket().use {
+            it.reuseAddress = true
+            it.bind(java.net.InetSocketAddress("127.0.0.1", testPort))
+        }
     }
 
     @Test

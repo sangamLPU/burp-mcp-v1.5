@@ -16,6 +16,8 @@ import io.modelcontextprotocol.kotlin.sdk.server.mcp
 import io.modelcontextprotocol.kotlin.sdk.server.mcpStreamableHttp
 import net.portswigger.mcp.config.McpConfig
 import net.portswigger.mcp.tools.registerTools
+import net.portswigger.mcp.rewrite.RewriteManager
+import net.portswigger.mcp.rewrite.registerRewriteTools
 import java.net.URI
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -25,12 +27,14 @@ const val STREAMABLE_HTTP_PATH = "/mcp"
 private const val MCP_SESSION_ID_HEADER = "Mcp-Session-Id"
 private const val MCP_PROTOCOL_VERSION_HEADER = "Mcp-Protocol-Version"
 
-class KtorServerManager(private val api: MontoyaApi) : ServerManager {
+class KtorServerManager(private val api: MontoyaApi, private val rewriteManager: RewriteManager? = null) : ServerManager {
 
     private var server: EmbeddedServer<*, *>? = null
     private val executor: ExecutorService = Executors.newSingleThreadExecutor()
 
+    @Synchronized
     override fun start(config: McpConfig, callback: (ServerState) -> Unit) {
+        if (executor.isShutdown) return
         callback(ServerState.Starting)
 
         executor.submit {
@@ -112,6 +116,7 @@ class KtorServerManager(private val api: MontoyaApi) : ServerManager {
                     }
 
                     mcpServer.registerTools(api, config)
+                    rewriteManager?.let { mcpServer.registerRewriteTools(it) }
                 }.apply {
                     start(wait = false)
                 }
@@ -126,7 +131,9 @@ class KtorServerManager(private val api: MontoyaApi) : ServerManager {
         }
     }
 
+    @Synchronized
     override fun stop(callback: (ServerState) -> Unit) {
+        if (executor.isShutdown) return
         callback(ServerState.Stopping)
 
         executor.submit {
@@ -143,11 +150,25 @@ class KtorServerManager(private val api: MontoyaApi) : ServerManager {
     }
 
     override fun shutdown() {
-        server?.stop(1000, 5000)
-        server = null
-
-        executor.shutdown()
-        executor.awaitTermination(10, TimeUnit.SECONDS)
+        synchronized(this) {
+            if (!executor.isShutdown) {
+                // Stop on the same queue as start/stop. A queued start must not bind
+                // a listener after unload has already tried to stop it.
+                executor.submit {
+                    try {
+                        server?.stop(1000, 5000)
+                    } catch (e: Exception) {
+                        api.logging().logToError(e)
+                    } finally {
+                        server = null
+                    }
+                }
+                executor.shutdown()
+            }
+        }
+        if (!executor.awaitTermination(15, TimeUnit.SECONDS)) {
+            api.logging().logToError("MCP server shutdown is still pending")
+        }
     }
 
     private fun isValidOrigin(origin: String): Boolean {

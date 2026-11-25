@@ -134,7 +134,7 @@ class ProxyEndToEndTest {
         }
 
         proxyProcess = ProcessBuilder(
-            "java",
+            File(System.getProperty("java.home"), "bin/${if (System.getProperty("os.name").startsWith("Windows")) "java.exe" else "java"}").absolutePath,
             "-Dorg.slf4j.simpleLogger.defaultLogLevel=warn",
             "-jar",
             jarFile.absolutePath,

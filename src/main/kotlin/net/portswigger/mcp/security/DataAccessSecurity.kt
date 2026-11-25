@@ -1,5 +1,7 @@
 package net.portswigger.mcp.security
 
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import net.portswigger.mcp.config.Dialogs
 import net.portswigger.mcp.config.McpConfig
 
@@ -32,11 +34,10 @@ class SwingDataAccessApprovalHandler : DataAccessApprovalHandler {
             "Allow Once", "Always Allow $accessTypeName", "Deny"
         )
 
-        val burpFrame = findBurpFrame()
-
         val result = Dialogs.requestOption(
-            burpFrame, message, options
+            null, message, options
         )
+        currentCoroutineContext().ensureActive()
 
         return when (result) {
             0 -> true
